@@ -117,7 +117,11 @@ const Index = () => {
 
             {/* Preview Gallery */}
             <div className="h-96 rounded-2xl overflow-hidden">
-              <Gallery3D artworks={generatedArt} />
+              <Gallery3D artworks={generatedArt.map(img => ({
+                image: img,
+                title: 'Generated Art',
+                artist: 'AI'
+              }))} />
             </div>
           </div>
         )}
@@ -141,7 +145,7 @@ const Index = () => {
                     <Button 
                       variant="outline" 
                       onClick={() => setUploadedImage(null)}
-                      className="mt-4 text-white border-white/30 hover:bg-white/20"
+                      className="mt-4 text-blue-400 border-white/30 hover:bg-white/20"
                     >
                       Upload Different Image
                     </Button>
@@ -160,7 +164,14 @@ const Index = () => {
 
         {currentView === 'gallery' && (
           <div className="h-screen">
-            <Gallery3D artworks={generatedArt} fullscreen />
+            <Gallery3D 
+            artworks={generatedArt.map(img => ({
+              image: img,
+              title: 'Generated Art',
+              artist: 'AI'
+            }))}
+            fullscreen 
+          />
           </div>
         )}
       </div>
