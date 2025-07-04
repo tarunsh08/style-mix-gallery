@@ -1,7 +1,9 @@
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, Html, useTexture } from '@react-three/drei';
 import { Suspense } from 'react';
-import GalleryScene from './GalleryScene';
+import { useRef } from 'react';
+import { Box } from '@react-three/drei';
+import * as THREE from 'three';
 
 interface Gallery3DProps {
   artworks: Array<{
@@ -13,9 +15,9 @@ interface Gallery3DProps {
 }
 
 const ArtFrame = ({ position, imageUrl, title }: { position: [number, number, number]; imageUrl: string; title: string }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<THREE.Mesh>(null); 
   
-  return (
+  return (  
     <group position={position}>
       {/* Frame */}
       <Box args={[3.2, 2.2, 0.1]} position={[0, 0, -0.05]}>
@@ -128,7 +130,7 @@ const Gallery3D = ({ artworks, fullscreen = false }: Gallery3DProps) => {
     <div className={fullscreen ? 'w-full h-full' : 'w-full h-full rounded-2xl overflow-hidden'}>
       <Canvas camera={{ position: [0, 2, 8], fov: 60 }}>
         <Suspense fallback={null}>
-          <GalleryScene artworks={artworks} />
+          <GalleryScene artworks={artworks.map(artwork => artwork.image)} />
           <OrbitControls 
             enablePan={true}
             enableZoom={true}
