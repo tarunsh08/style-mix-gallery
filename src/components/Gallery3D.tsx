@@ -19,8 +19,8 @@ const ArtFrame = ({ position, imageUrl, title }: { position: [number, number, nu
         <meshStandardMaterial color="#8B4513" />
       </Box>
       
-      {/* Artwork placeholder - in a real app, you'd load the texture */}
-      <Box args={[3, 2, 0.02]}>
+      {/* Artwork placeholder */}
+      <Box args={[3, 2, 0.02]} ref={meshRef}>
         <meshStandardMaterial color="#f0f0f0" />
       </Box>
       
@@ -123,7 +123,18 @@ const GalleryScene = ({ artworks }: { artworks: string[] }) => {
 const Gallery3D = ({ artworks, fullscreen = false }: Gallery3DProps) => {
   return (
     <div className={fullscreen ? 'w-full h-full' : 'w-full h-full rounded-2xl overflow-hidden'}>
-      <Canvas camera={{ position: [0, 2, 8], fov: 60 }}>
+      <Canvas 
+        camera={{ position: [0, 2, 8], fov: 60 }}
+        gl={{ 
+          antialias: true, 
+          alpha: true,
+          preserveDrawingBuffer: true,
+          powerPreference: "high-performance"
+        }}
+        onCreated={({ gl }) => {
+          gl.setClearColor('#1a1a2e', 1);
+        }}
+      >
         <Suspense fallback={null}>
           <GalleryScene artworks={artworks} />
           <OrbitControls 
