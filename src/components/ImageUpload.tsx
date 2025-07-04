@@ -94,10 +94,10 @@ const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
               
               <label htmlFor="file-upload">
                 <Button 
-                  as="span"
+                  asChild
                   className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-8 py-3"
                 >
-                  Choose File
+                  <span>Choose File</span>
                 </Button>
               </label>
             </>
