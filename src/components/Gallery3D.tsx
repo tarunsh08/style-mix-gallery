@@ -1,33 +1,32 @@
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text, Html, useTexture } from '@react-three/drei';
-import { Suspense } from 'react';
-import { useRef } from 'react';
-import { Box } from '@react-three/drei';
+import { Suspense, useState, useEffect } from 'react';
 import * as THREE from 'three';
 
-interface Gallery3DProps {
-  artworks: Array<{
-    image: string;
-    title: string;
-    artist: string;
-  }>;
-  fullscreen?: boolean;
+interface ArtFrameProps {
+  position: [number, number, number];
+  imageUrl: string;
+  title: string;
 }
 
-const ArtFrame = ({ position, imageUrl, title }: { position: [number, number, number]; imageUrl: string; title: string }) => {
-  const meshRef = useRef<THREE.Mesh>(null); 
-  
-  return (  
+const ArtFrame = ({ position, imageUrl, title }: ArtFrameProps) => {
+  const texture = useTexture({
+    map: imageUrl || '/placeholder.jpg',
+  });
+
+  return (
     <group position={position}>
       {/* Frame */}
-      <Box args={[3.2, 2.2, 0.1]} position={[0, 0, -0.05]}>
+      <mesh position={[0, 0, -0.05]}>
+        <boxGeometry args={[3.2, 2.2, 0.1]} />
         <meshStandardMaterial color="#8B4513" />
-      </Box>
+      </mesh>
       
-      {/* Artwork placeholder - in a real app, you'd load the texture */}
-      <Box args={[3, 2, 0.02]}>
-        <meshStandardMaterial color="#f0f0f0" />
-      </Box>
+      {/* Artwork */}
+      <mesh>
+        <boxGeometry args={[3, 2, 0.02]} />
+        <meshStandardMaterial map={texture.map} />
+      </mesh>
       
       {/* Title */}
       <Text
@@ -43,15 +42,21 @@ const ArtFrame = ({ position, imageUrl, title }: { position: [number, number, nu
   );
 };
 
-const GalleryScene = ({ artworks }: { artworks: string[] }) => {
+interface GallerySceneProps {
+  artworks: string[];
+}
+
+const GalleryScene = ({ artworks = [] }: GallerySceneProps) => {
   const positions: [number, number, number][] = [
-    [-4, 1, 0],
-    [0, 1, 0],
-    [4, 1, 0],
-    [-4, 1, -8],
-    [0, 1, -8],
-    [4, 1, -8],
+    [-4, 1, 0], [0, 1, 0], [4, 1, 0],
+    [-4, 1, -8], [0, 1, -8], [4, 1, -8]
   ];
+
+  // Filter valid image URLs
+  const validArtworks = artworks.filter(url => 
+    typeof url === 'string' && 
+    (url.startsWith('http') || url.startsWith('data:image') || url.startsWith('/')
+  ));
 
   return (
     <>
@@ -60,77 +65,74 @@ const GalleryScene = ({ artworks }: { artworks: string[] }) => {
       <directionalLight position={[10, 10, 5]} intensity={1} />
       <pointLight position={[0, 10, 0]} intensity={0.5} />
       
-      {/* Gallery floor */}
+      {/* Gallery structure */}
       <mesh position={[0, -1, -4]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[20, 20]} />
         <meshStandardMaterial color="#2a2a2a" />
       </mesh>
-      
-      {/* Gallery walls */}
-      <mesh position={[0, 3, -10]}>
-        <planeGeometry args={[20, 8]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      
-      <mesh position={[-10, 3, -4]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[20, 8]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      
-      <mesh position={[10, 3, -4]} rotation={[0, -Math.PI / 2, 0]}>
-        <planeGeometry args={[20, 8]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      
+
       {/* Artworks */}
-      {artworks.map((artwork, index) => (
+      {validArtworks.map((artwork, index) => (
         <ArtFrame
-          key={index}
+          key={`artwork-${index}`}
           position={positions[index] || [0, 1, 0]}
           imageUrl={artwork}
           title={`Artwork ${index + 1}`}
         />
       ))}
-      
-      {/* Default artworks if none uploaded */}
-      {artworks.length === 0 && (
-        <>
-          <ArtFrame position={[-4, 1, 0]} imageUrl="" title="Upload your first artwork" />
-          <ArtFrame position={[0, 1, 0]} imageUrl="" title="Transform with AI" />
-          <ArtFrame position={[4, 1, 0]} imageUrl="" title="Explore in 3D" />
-        </>
+
+      {validArtworks.length === 0 && (
+        <Text
+          position={[0, 0, -5]}
+          fontSize={0.5}
+          color="#ffffff"
+          anchorX="center"
+          anchorY="middle"
+        >
+          Upload your first artwork
+        </Text>
       )}
-      
-      {/* Welcome text */}
-      <Text
-        position={[0, 4, -5]}
-        fontSize={0.8}
-        color="#9333ea"
-        anchorX="center"
-        anchorY="middle"
-      >
-        Neural Art Gallery
-      </Text>
-      
-      <Text
-        position={[0, 3.2, -5]}
-        fontSize={0.3}
-        color="#e2e8f0"
-        anchorX="center"
-        anchorY="middle"
-      >
-        Where AI meets Art
-      </Text>
     </>
   );
 };
 
-const Gallery3D = ({ artworks, fullscreen = false }: Gallery3DProps) => {
+interface Gallery3DProps {
+  artworks?: string[];
+  fullscreen?: boolean;
+}
+
+const Gallery3D = ({ artworks = [], fullscreen = false }: Gallery3DProps) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p>Initializing 3D gallery...</p>
+      </div>
+    );
+  }
+
   return (
     <div className={fullscreen ? 'w-full h-full' : 'w-full h-full rounded-2xl overflow-hidden'}>
-      <Canvas camera={{ position: [0, 2, 8], fov: 60 }}>
-        <Suspense fallback={null}>
-          <GalleryScene artworks={artworks.map(artwork => artwork.image)} />
+      <Canvas 
+        camera={{ position: [0, 2, 8], fov: 60 }}
+        gl={{
+          preserveDrawingBuffer: true,
+          antialias: true,
+          powerPreference: "high-performance"
+        }}
+      >
+        <Suspense fallback={
+          <Html center>
+            <div className="text-white">Loading 3D assets...</div>
+          </Html>
+        }>
+          <GalleryScene artworks={artworks} />
           <OrbitControls 
             enablePan={true}
             enableZoom={true}

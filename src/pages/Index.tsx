@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -117,11 +116,7 @@ const Index = () => {
 
             {/* Preview Gallery */}
             <div className="h-96 rounded-2xl overflow-hidden">
-              <Gallery3D artworks={generatedArt.map(img => ({
-                image: img,
-                title: 'Generated Art',
-                artist: 'AI'
-              }))} />
+              <Gallery3D artworks={generatedArt} />
             </div>
           </div>
         )}
@@ -165,13 +160,9 @@ const Index = () => {
         {currentView === 'gallery' && (
           <div className="h-screen">
             <Gallery3D 
-            artworks={generatedArt.map(img => ({
-              image: img,
-              title: 'Generated Art',
-              artist: 'AI'
-            }))}
-            fullscreen 
-          />
+              artworks={generatedArt}
+              fullscreen 
+            />
           </div>
         )}
       </div>
